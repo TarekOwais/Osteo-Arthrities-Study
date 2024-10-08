@@ -1,0 +1,193 @@
+---
+title: "osteoarthrities study"
+author: "Dr\ Tarek A.Owais"
+date: "2024-08-12"
+output: html_document
+knit : TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(ggplot2)
+require(finalfit)
+require(gmodels)
+require(gtsummary)
+require(Hmisc)
+```
+
+```{r}
+df<-read.csv(("OA data.csv"))
+dim(df)
+
+df<-df[complete.cases(df),]
+dim(df)
+```
+
+
+```{r}
+# knowledge section
+df[,10]<-factor(df[,10],levels = c("Yes","no","Not sure"))
+df[,11]<-factor(df[,11],levels = c("Yes","no","Not sure"))
+df[,12]<-factor(df[,12],levels = c("Yes","no","Not sure"))
+df[,13]<-factor(df[,13],levels = c("Yes","no","Not sure"))
+df[,15]<-factor(df[,15],levels = c("Yes","no","Not sure"))
+df[,16]<-factor(df[,16],levels = c("Yes","no","Not sure"))
+df[,17]<-factor(df[,17],levels = c("Yes","no","Not sure"))
+df[,18]<-factor(df[,18],levels = c("Yes","no","Not sure"))
+df[,19]<-factor(df[,19],levels = c("Yes","no","Not sure"))
+df[,20]<-factor(df[,20],levels = c("Yes","no","Not sure"))
+df[,21]<-factor(df[,21],levels = c("Yes","no","Not sure"))
+df[,22]<-factor(df[,22],levels = c("Yes","no","Not sure"))
+df[,23]<-factor(df[,23],levels = c("Yes","no","Not sure"))
+df[,24]<-factor(df[,24],levels = c("Yes","no","Not sure"))
+df[,25]<-factor(df[,25],levels = c("Yes","no","Not sure"))
+df[,26]<-factor(df[,26],levels = c("Yes","no","Not sure"))
+df[,27]<-factor(df[,27],levels = c("Yes","no","Not sure"))
+df[,28]<-factor(df[,28],levels = c("Yes","no","Not sure"))
+df[,29]<-factor(df[,29],levels = c("Yes","no","Not sure"))
+df[,30]<-factor(df[,30],levels = c("Yes","no","Not sure"))
+df[,31]<-factor(df[,31],levels = c("Yes","no","Not sure"))
+df[,32]<-factor(df[,32],levels = c("Yes","no","Not sure"))
+df[,33]<-factor(df[,33],levels = c("Yes","no","Not sure"))
+df[,34]<-factor(df[,34],levels = c("Yes","no","Not sure"))
+
+
+# knowledge_questions_df
+knowledge_questions_df<-df[c(10:13,15:34)]
+colnames(knowledge_questions_df)
+# View(knowledge_questions_df)
+dim(knowledge_questions_df)
+#recoding --- all are yes except 8,11
+knowledge_yes<-knowledge_questions_df[c(1:7,9,10,12:24)]
+knowledge_no<-knowledge_questions_df[c(8,11)]
+
+knowledge_yes<-ifelse(knowledge_yes=="Yes",1,0)
+knowledge_no<- ifelse(knowledge_no=="no",1,0)
+# checking
+print(table(knowledge_yes[,1]))
+print(table(knowledge_questions_df[,1]))
+print(table(knowledge_no[,1]))
+print(table(knowledge_questions_df[,8]))
+
+knowledge_df<-data.frame(knowledge_yes,knowledge_no)
+dim(knowledge_df)
+
+
+knowledge_df$total.knowledge<-rowSums(knowledge_df)
+summary(knowledge_df$total.knowledge)
+knowledge_df$knowledge.percentage<-knowledge_df$total.knowledge*100/24
+df$knowledge_levels<-ifelse(knowledge_df$knowledge.percentage<70,"Low","High")
+table(df$knowledge_levels)
+
+df<-df[complete.cases(df),]
+dim(df)
+
+colnames(df)
+
+
+
+knowledge_table<-df %>% 
+  select(10:13,15:34,35) %>% 
+  tbl_summary(by=NULL) %>% 
+  bold_labels()
+
+knowledge_table
+
+
+knowledge_table %>% 
+  as_gt() %>% 
+  gt::gtsave("tables/knowledge_table.rtf")
+```
+
+```{r}
+# sociodemographics table
+#releveling
+dim(df)
+table(df[3])
+df$What.is.your.gender.<-factor(df$What.is.your.gender., levels = c("male", "female"))
+#Age
+summary(df$Age)
+df$Age.group<-ifelse(df$Age>25,">25","<=25")
+#education
+df$education<-ifelse(df$Educational.level=="Postgraduate studies (Masters/PhD)"|df$Educational.level=="university","University|PostGrad","PreUniversity")
+table(df$education)
+# marital status
+df$marital.status[df$marital.status=="Divorced"]<-"Divorced|Widow"
+df$marital.status[df$marital.status=="widow"]<-"Divorced|Widow"
+
+table(df$marital.status)
+# Q9
+table(df[9])
+df[,9]<-factor(df[,9],levels = c("Yes","no"))
+
+
+colnames(df)
+
+demographic_table<-df %>% 
+  select(3,36,5,37,7,9) %>% 
+  tbl_summary(by=NULL) %>% 
+  bold_labels()
+
+demographic_table
+
+#saving
+demographic_table %>% 
+  as_gt() %>% 
+  gt::gtsave("tables/demographic_table.rtf")
+
+colnames(df)
+```
+
+
+
+```{r}
+# source of information
+q8<-data.frame(df$What.is.your.source.of.information.about.osteoarthritis.)
+View(q8)
+
+
+
+library(tidyr)
+#Q8<-tidyr::separate_rows(data frame that we created, columns that needed to be divided, separation)
+Q8<-tidyr::separate_rows(q8,"df.What.is.your.source.of.information.about.osteoarthritis.", sep=", ")
+table(Q8)
+Q8<-table(Q8)
+Q8<-data.frame(Q8)
+Q8$percentage<-(Q8$Freq*100)/725
+write.csv(Q8,"tables/Q8.csv")
+```
+
+```{r}
+# mechanism
+q14<-data.frame(df$What.do.you.think.is.the.underlying.mechanism.of.osteoarthritis..You.can.choose.more.than.one.option)
+View(q14)
+
+
+
+library(tidyr)
+#Q14<-tidyr::separate_rows(data frame that we created, columns that needed to be divided, separation)
+Q14<-tidyr::separate_rows(q14,"df.What.do.you.think.is.the.underlying.mechanism.of.osteoarthritis..You.can.choose.more.than.one.option", sep=", ")
+table(Q14)
+Q14<-table(Q14)
+Q14<-data.frame(Q14)
+Q14$percentage<-(Q14$Freq*100)/725
+write.csv(Q14,"tables/Q14.csv")
+
+write.csv(Q14, "tables/Q14.csv")
+```
+
+
+```{r}
+# regression model
+explanatory_reg=c("What.is.your.gender.", "Age.group", "education", "marital.status", "Do.you.know.someone.diagnosed.with.osteoarthritis.")
+df$knowledge_reg<-ifelse(df$knowledge_levels=="Low",0,1)
+df$knowledge_reg<-as.factor(df$knowledge_reg)
+knowledge_model<-df %>% finalfit(dependent = "knowledge_reg", explanatory = explanatory_reg)
+
+write.csv(knowledge_model, "tables/knowledge_model.csv")
+dim(df)
+```
+
